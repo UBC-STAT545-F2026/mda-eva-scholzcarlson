@@ -76,9 +76,9 @@ Out of the 5 data sets listed above, choose **2** that appeal to you based on th
 
 <!-------------------------- Start your work below ---------------------------->
 
-1: Write 1st choice here
+1: hcmst
 
-2: Write 2nd choice here
+2: womensmarchmadness
 
 
 <!----------------------------------------------------------------------------->
@@ -92,13 +92,25 @@ One way to narrowing down your selection is to *explore* the data sets. Use your
 
 #### Data Set 1
 ```{r}
-### Explore 3 variables of data set 1 ###
+str(hcmst)
+lapply(hcmst, unique) #many of the variables seem like multiple choice survey data so I viewed all unique answers in each variable
 
+# variable 1: mean relationship duration
+mean(hcmst$relationship_duration, na.rm = TRUE)
+
+# variable 2: employment status options
+employment_status <- as.factor(hcmst$subject_employment_status)
+levels(employment_status)
+
+# variable 3: min and max age of subjects
+min(hcmst$subject_age)
+max(hcmst$subject_age)
 ```
+I found that the mean relationship duration for surveyed participants was 27.23 years.
 
+There were seven options for subject employment status that included options for "not working" including disabled, looking, other, retired, and temp layoff, and for "working" including paid employee or self employed.
 
-Write your findings here.
-
+The minimum subject age was 23 and the maximum was 98.
 
 
 
