@@ -106,23 +106,32 @@ levels(employment_status)
 min(hcmst$subject_age)
 max(hcmst$subject_age)
 ```
-I found that the mean relationship duration for surveyed participants was 27.23 years.
-
-There were seven options for subject employment status that included options for "not working" including disabled, looking, other, retired, and temp layoff, and for "working" including paid employee or self employed.
-
-The minimum subject age was 23 and the maximum was 98.
-
+I found that the mean relationship duration for surveyed participants was 27.23 years. There were seven options for subject employment status that included options for "not working" including disabled, looking, other, retired, and temp layoff, and for "working" including paid employee or self employed. The minimum subject age was 23 and the maximum age was 98.
 
 
 #### Data Set 2
 ```{r}
-### Explore 3 variables of data set 2 ###
+str(womensmarchmadness)
+
+# variable 1: number of schools included in dataset
+length(unique(womensmarchmadness$school))
+
+# variable 2: range of years in dataset
+firstyear <- min(womensmarchmadness$year)
+lastyear <- max(womensmarchmadness$year)
+firstyear
+lastyear
+lastyear - firstyear #number of years the dataset spans
+
+# variable 3: maximum wins and percentage of total wins
+max(womensmarchmadness$total_wins)
+max(womensmarchmadness$total_wins_pct)
 
 ```
 
 Write your findings here.
 
-
+The womensmarchmadness dataset includes 284 schools. It spans 36 years, from 1982 to 2018. The maximum number of wins in a season was 40 (100% wins). 
 
 
 <!----------------------------------------------------------------------------->
@@ -139,7 +148,7 @@ It's time to choose only one data set. State the data set that you've chosen, an
 
 <!-------------------------- Start your work below ---------------------------->
 
-
+I've chosen the hcmst dataset. I'm interested in the influence of a number of variables in this dataset on relationship quality and length, including employment status, income, and number of flirts and fights with the partner. I was also excited to see that the relationships of people surveyed tend to be quite long, and that there are participants from a very wide age range.
 
 <!----------------------------------------------------------------------------->
 
@@ -154,7 +163,8 @@ Write your research questions **as questions**, and be specific. You can change 
 
 <!-------------------------- Start your work below ---------------------------->
 
-
+Primary: Is there a relationship between income and rated relationship quality?
+Secondary: Does this relationship differ in same-sex couples of either sex?
 
 
 <!----------------------------------------------------------------------------->
