@@ -3,8 +3,11 @@ This is a repository for Eva's mini data analysis in STAT545, which analyzes the
 
 ## Files
 README.md - this README file
+
 .gitignore - specifies which files to ignore
+
 mda-eva-scholzcarlson.Rproj - the R project analyzing this dataset
+
 mda_deliverable1.Rmd - an R markdown file with exploration of "hcmst" and "womensmarchmadenss" datasets and further analysis of "hcmst" variables
 
 
