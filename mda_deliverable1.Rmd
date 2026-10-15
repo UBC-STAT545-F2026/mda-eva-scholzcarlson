@@ -106,7 +106,7 @@ levels(employment_status)
 min(hcmst$subject_age)
 max(hcmst$subject_age)
 ```
-I found that the mean relationship duration for surveyed participants was 27.23 years. There were seven options for subject employment status that included options for "not working" including disabled, looking, other, retired, and temp layoff, and for "working" including paid employee or self employed. The minimum subject age was 23 and the maximum age was 98.
+I found that the mean relationship duration for surveyed participants was 27.23 years. There were seven options for subject employment status with choices within "not working" including disabled, looking, other, retired, and temporary layoff, and for "working" including paid employee or self employed. The minimum subject age was 23 and the maximum age was 98.
 
 
 #### Data Set 2
@@ -163,7 +163,7 @@ Write your research questions **as questions**, and be specific. You can change 
 
 <!-------------------------- Start your work below ---------------------------->
 
-Primary: Is there a relationship between income and rated relationship quality?
+Primary: Is there a relationship between income and relationship duration?
 Secondary: Does this relationship differ in same-sex couples of either sex?
 
 
@@ -190,7 +190,21 @@ Your task is to create a table that calculates the proportion of missing values 
 <!-------------------------- Start your work below ---------------------------->
 
 ```{r}
-### Explore missingness here ###
+# creating a new tibble with number of missing values in each variable
+hcmst_missing <- hcmst |>
+  summarise(
+    across(
+      everything(), #including all variables
+      list(
+      NA_prop = ~ sum(is.na(.x))/length(.x)))) #calculating proportion of NAs per variable
+
+print(hcmst_missing)
+
+#new tibble with missing data proportion for my variables of interest
+hcmst_missing_myvars <- hcmst_missing |>
+  select(subject_income_category_NA_prop, relationship_duration_NA_prop, same_sex_couple_NA_prop, subject_sex_NA_prop)
+
+print(hcmst_missing_myvars)
 
 ```
 
@@ -215,7 +229,7 @@ If missingness is not an issue, describe why.
 
 <!-------------------------- Start your work below ---------------------------->
 
-
+Missingness is not an issue since income and same-sex status have no missing values, while relationship duration is only missing 2.6% of the data. Since relationship duration is part of my primary question, I will not be able to use this 2.6% of data for my entire analysis, however this is well under 20%.
 
 
 <!----------------------------------------------------------------------------->
@@ -242,8 +256,22 @@ Show the first 6 rows of the tidied data.
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
 
+hcmst_subset <- hcmst |>
+  select(c(subject_income_category, #selecting relevant columns for my analysis
+           relationship_duration, 
+           same_sex_couple,
+           subject_sex)) |> 
+  mutate(income = #ordering levels for my income category for easier graphing and renaming with shorter name
+           ordered(subject_income_category, 
+                   levels = c("under_5k", "5k-7k", "7k_10k", "10k_12k", "12k_15k", "15k_20k", "20k_25k","25k_30k", "30k_35k", "35k_40k", "40k_50k", "50k_60k", "60k_75k", "75k_85k","85k_100k", "100k_125k", "125k_150k", "150k_175k", "175k_200k", "200k_250k", "over_250k")),  
+         #I'm guessing there's a more efficient way to do this, such as ordering by the last part of the range, 
+         #but I couldn't figure that out
+         .keep = "unused", #getting rid of old subject_income_category column
+         .before = relationship_duration) |>
+  rename(sex = subject_sex) |>
+  arrange(income) 
 
-
+head(hcmst_subset)
 
 ```
 
@@ -259,8 +287,12 @@ Show the outputted table.
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
 
+hcmst_subset_summary <- hcmst_subset |>
+  summarise(across(where(is.numeric), #summarising across all numeric variables
+            c(mean = mean, min = min, max = max), #using mean, min, and max functions
+            na.rm = TRUE)) #excluding NA data
 
-
+hcmst_subset_summary
 
 ```
 
