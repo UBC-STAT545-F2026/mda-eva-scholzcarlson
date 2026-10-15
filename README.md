@@ -10,6 +10,8 @@ mda-eva-scholzcarlson.Rproj - the R project analyzing this dataset
 
 mda_deliverable1.Rmd - an R markdown file with exploration of "hcmst" and "womensmarchmadenss" datasets and further analysis of "hcmst" variables
 
+mda_deliverable1.md - a markdown file with the knitted version of the .Rmd file
+
 
 The most useful file in this repository is mda_deliverable1.Rmd. Here, you can follow the prompts and code written to explore the dataset.
 
