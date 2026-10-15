@@ -92,8 +92,8 @@ One way to narrowing down your selection is to *explore* the data sets. Use your
 
 #### Data Set 1
 ```{r}
-str(hcmst)
-lapply(hcmst, unique) #many of the variables seem like multiple choice survey data so I viewed all unique answers in each variable
+#str(hcmst)
+#lapply(hcmst, unique) #many of the variables seem like multiple choice survey data so I viewed all unique answers in each variable in my initial dataset viewing
 
 # variable 1: mean relationship duration
 mean(hcmst$relationship_duration, na.rm = TRUE)
@@ -111,7 +111,7 @@ I found that the mean relationship duration for surveyed participants was 27.23 
 
 #### Data Set 2
 ```{r}
-str(womensmarchmadness)
+#str(womensmarchmadness)
 
 # variable 1: number of schools included in dataset
 length(unique(womensmarchmadness$school))
