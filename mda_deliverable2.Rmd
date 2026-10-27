@@ -20,8 +20,8 @@ library(tidyverse)
 library(diversedata)
 
 #--- Add any other packages below this line ---#
-
-
+library(RColorBrewer)
+library(broom)
 ```
 
 
@@ -36,7 +36,7 @@ First, write out the two research questions you defined in Milestone 1. If you'd
 
 Q1 (Primary): Is there a relationship between income and relationship duration?
 
-Q2 (Secondary): Does this relationship differ in same-sex couples of either sex?
+Q2 (Secondary): Does this relationship differ in same-sex couples of either sex? If there is no relationship between income and relationship duration: is there a relationship between same-sex status of either sex and relationship duration?
 
 
 <!----------------------------------------------------------------------------->
@@ -55,7 +55,9 @@ Show the outputted table.
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
-relduration_byincome <- hcmst_subset |> #using subset created in mda_deliverable1.Rmd
+# before proceeding, run mda-deliverable1.Rmd to load hcmst_subset
+
+relduration_byincome <- hcmst_subset |> #new tibble with mean relationship duration by income class
     group_by(income) |> #grouping by income class
     summarise(mean_rel_duration = mean(relationship_duration, na.rm = TRUE)) #creating new variable for mean relationship duration
 
@@ -96,8 +98,8 @@ sum(is.na(hcmst_subset$relationship_duration)) #calculating number of NAs in rel
 
 ## PROPORTIONS OF INCOME LEVELS PLOT
 hcmst_subset |>
-  drop_na(income) |>
-  ggplot(aes(x = income, y = after_stat(prop), group = 1)) +
+  drop_na(income) |> #dropping NAs to avoid a "NA" category
+  ggplot(aes(x = income, y = after_stat(prop), group = 1)) + #using after_stat(prop) to plot proportions instead of counts, group size of 1 prevents relative proportions of 1.0 for each category
   geom_bar() +
   theme_bw() +
   labs(
@@ -145,35 +147,65 @@ All of your plots should follow the guidelines presented in class with clear axi
 
 **Primary Question:**
 
-Task:
+Task: G3
 
 
 ```{r}
-# Plot 1
+# Plotting relationship duration by income class with a boxplot + dotplot
 
 hcmst_subset |>
-  ggplot(aes(x = income, y = relationship_duration)) +
-  geom_bar(stat = "identity") +
+  drop_na() |> #dropping all NAs in subset before plotting
+  ggplot(aes(x = income, y = relationship_duration)) + 
+  geom_boxplot(fill = "cadetblue3", #adding boxplot with blue color
+               alpha = 0.3, #increasing transparency
+               outlier.shape = NA,) + #removing outlier plotting since all points are plotted in dotplot
+  geom_dotplot(binaxis='y', #binning along y axis instead of x
+               binwidth = 0.2, #setting 0.2 year binwidth to avoid excessive binning of data
+               stackdir = 'center',
+               dotsize = 7, #note: smaller binwidths result in smaller dot sizes, thus they must be proportionally adjusted
+               fill="cadetblue4",
+               alpha = 0.7) +
   theme_bw() +
+  labs(
+    title = "Relationship duration by subject income level",
+    x = "Income level",
+    y = "Relationship duration (years)") +
   theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) #rotating axis labels 45 degrees with correct alignment
 
+#dotplot elements chosen with help from https://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
 
 ```
 
 
-Discussion:
+Discussion: This plot shows that there is a very wide distribution of relationship durations within each income level. Mean relationship durations may be slightly shorter for lower income levels (~below 25k), however there are many fewer points in these levels, thus this is unlikely to be significant. There appear to be a large number of very short relationships especially in the 60-75k bracket, and it would be interesting to further explore whether the proportion of these short relationships is higher in this bracket and what subjects report about these relationships.
 
 **Secondary Question:**
 
-Task:
+Task: G5/G6
 
 
 ```{r}
-# Plot 2
+
+# Plotting relationship duration of same-sex vs non same-sex couples by subject sex
+
+hcmst_subset |>
+  drop_na() |>
+  mutate(
+    same_sex_couple = recode(same_sex_couple, yes = "Same-sex", no = "Non same-sex")) |> #recoding same-sex couple labels
+  ggplot(aes(relationship_duration, colour = sex)) +
+  geom_density(linewidth = 0.7) + #denisty plot of relationship durations
+  theme_light() +
+  scale_color_brewer(palette = "Dark2") + #color blind friendly palette in R Color Brewer
+  labs(
+    title = "Relationship duration of same-sex and non same-sex couples",
+    x = "Relationship duration (years)",
+    y = "Density of relationship duration",
+    colour = "Subject sex") +
+  facet_wrap(~same_sex_couple) #creating facets for same-sex and non-same sex relationships
+
 ```
 
-Discussion:
-
+Discussion: There appears to be a much higher proportion of short (0-25 year) same-sex relationships. This is true for both male and female same-sex relationships, however there is a higher proportion of male same-sex relationships that are 25-50 years long. There are almost no reported same-sex relationships longer than 50 years. Historical context should certainly be taken into account when drawing conclusions from this data. For non same-sex couples, males tend to report on longer relationships. Since the relationships are not same-sex, this indicates information about the subject reporting and not about the relationship.
 
 <!----------------------------------------------------------------------------->
 
@@ -190,6 +222,25 @@ Fit a model or run a hypothesis test that provides insight on this variable with
     -   You could use `lm()` to test for significance of regression coefficients.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+same_sex <- hcmst_subset |>
+  drop_na() |>
+  filter(same_sex_couple == "yes") |>
+  select(relationship_duration) |>
+  as.vector()
+same_sex
+
+non_same_sex <- hcmst_subset |>
+  drop_na() |>
+  filter(same_sex_couple == "no") |>
+  select(relationship_duration) |>
+  as.vector()
+head(non_same_sex)
+
+ttest_duration_samesex <- t.test(x = same_sex, y = non_same_sex)
+ttest_duration_samesex
+
+```
 
 <!----------------------------------------------------------------------------->
 
