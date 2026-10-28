@@ -1,0 +1,535 @@
+Mini Data-Analysis: Deliverable 2
+================
+
+Total points available: 61
+
+# Task 0: Setup
+
+Begin by loading your data and the tidyverse package below:
+
+**0.1: Load Packages**
+
+Typically, R Packages are loaded in at the very beginning of the
+analysis. If you later want to use other packages, please come back and
+add them here:
+
+``` r
+library(tidyverse)
+library(diversedata)
+
+#--- Add any other packages below this line ---#
+library(RColorBrewer)
+library(broom)
+library(here)
+```
+
+# Task 1: Your Research Questions
+
+### 1.1: Write Research Questions (1 point)
+
+First, write out the two research questions you defined in Milestone 1.
+If you’d like to refine them, you can do so here and just write the new
+question. This will guide your work through Milestone 2:
+
+<!-------------------------- Start your work below ---------------------------->
+
+Q1 (Primary): Is there a relationship between income and relationship
+duration?
+
+Q2 (Secondary): Does this relationship differ in same-sex couples of
+either sex? If there is no relationship between income and relationship
+duration: is there a relationship between same-sex status of either sex
+and relationship duration?
+
+<!----------------------------------------------------------------------------->
+
+# Task 2: Summarizing Your Data
+
+### 2.1: Summarize Over Levels of a Categorical Variable **(8 points)**
+
+Use your `tidyverse` knowledge to create one table that calculates mean
+of one numeric variable for each of the levels of another categorical
+variable (for example, the mean age of each class in the titanic data).
+
+Show the outputted table.
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+# before proceeding, run mda-deliverable1.Rmd to load hcmst_subset, or run the following:
+hcmst_subset <- hcmst |>
+  select(c(subject_income_category, #selecting relevant columns for my analysis
+           relationship_duration, 
+           same_sex_couple,
+           subject_sex)) |> 
+  mutate(income = #ordering levels for my income category for easier graphing and renaming with shorter name
+           ordered(subject_income_category, 
+                   levels = c("under_5k", "5k-7k", "7k_10k", "10k_12k", "12k_15k", "15k_20k", "20k_25k","25k_30k", "30k_35k", "35k_40k", "40k_50k", "50k_60k", "60k_75k", "75k_85k","85k_100k", "100k_125k", "125k_150k", "150k_175k", "175k_200k", "200k_250k", "over_250k")),  
+         .keep = "unused", #getting rid of old subject_income_category column
+         .before = relationship_duration) |>
+  rename(sex = subject_sex) |>
+  arrange(income) 
+
+# creating a new tibble from hcmst_subset:
+relduration_byincome <- hcmst_subset |> #new tibble with mean relationship duration by income class
+    group_by(income) |> #grouping by income class
+    summarise(mean_rel_duration = mean(relationship_duration, na.rm = TRUE)) #creating new variable for mean relationship duration
+
+head(relduration_byincome)
+```
+
+    ## # A tibble: 6 × 2
+    ##   income   mean_rel_duration
+    ##   <ord>                <dbl>
+    ## 1 under_5k              17.0
+    ## 2 7k_10k                14.6
+    ## 3 10k_12k               17.7
+    ## 4 12k_15k               21.4
+    ## 5 15k_20k               21.6
+    ## 6 20k_25k               21.5
+
+<!----------------------------------------------------------------------------->
+
+### 2.2: Plot Distributions (8 points)
+
+- **2.2.1** Use `ggplot` to plot the distribution of one of the numeric
+  variables in your tidied data set.
+
+- **2.2.2** Use `ggplot` to create a visualization showing the relative
+  proportions of each category/level for one of categorical variable in
+  your tidied data set.
+
+Clearly label the variable that is being plotted in each plot. Make sure
+the output is as clear as possible, provide an English title along with
+readable x and y column names
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+## DISTRIBUTION OF RELATIONSHIP DURATIONS PLOT
+hcmst_subset |>
+  ggplot(aes(x=relationship_duration)) +
+  geom_histogram(binwidth = 2) + #plotting a histogram with bin width of 2 years
+  theme_bw() +
+  labs(
+    title = "Distribution of relationship durations",
+    x = "Relationship duration (years)",
+    y = "Number of relationships")
+```
+
+    ## Warning: Removed 35 rows containing non-finite outside the scale range
+    ## (`stat_bin()`).
+
+![](mda_deliverable2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
+# I got a message that 35 rows are missing or outside the range and want to make sure I'm not cutting off data:
+sum(is.na(hcmst_subset$relationship_duration)) #calculating number of NAs in relationship duration
+```
+
+    ## [1] 35
+
+``` r
+# conclusion: they are all from NAs
+
+
+## PROPORTIONS OF INCOME LEVELS PLOT
+hcmst_subset |>
+  drop_na(income) |> #dropping NAs to avoid a "NA" category
+  ggplot(aes(x = income, y = after_stat(prop), group = 1)) + #using after_stat(prop) to plot proportions instead of counts, group size of 1 prevents relative proportions of 1.0 for each category
+  geom_bar() +
+  theme_bw() +
+  labs(
+    title = "Proportion of participants by income level",
+    x = "Income level",
+    y = "Relative proportion of participants") +
+  theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) #rotating axis labels 45 degrees with correct alignment
+```
+
+![](mda_deliverable2_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+<!----------------------------------------------------------------------------->
+
+# Task 3: Exploring Relationships
+
+### 3.1: Visualize Relationships **(12 points)**
+
+Now, for *each* of your research questions, choose one Graphing Task.
+Discuss the results (does this help answer your research question, or
+point toward more things to further explore?).
+
+Ensure that the output of each operation is printed!
+
+Also make sure that you’re using `dplyr` and `ggplot2` rather than base
+R. Outside of this project, you may find that you prefer using base R
+functions for certain tasks, and that’s just fine! But part of this
+project is for you to practice the tools we learned in class, which is
+dplyr and ggplot2.
+
+**Graphing Tasks:**
+
+- G1. Create a graph of your choosing, make one of the axes logarithmic,
+  and format the axes labels so that they are easier to read but still
+  say what is being measured (log-scaled).
+
+- G2. Make a graph where it makes sense to customize the alpha
+  transparency.
+
+- G3. Create a graph that has at least two geom\_\* layers.
+
+- G4. Create 3 histograms, with each histogram having different sized
+  bins. Pick the “best” one and explain why it is the best.
+
+- G5: Create a graph where you map the colour of a line/point/plot to
+  the level of categorical variable, using a colourblind-friendly
+  palette
+
+- G6: Create a plot that involves facets (sub-panels)
+
+All of your plots should follow the guidelines presented in class with
+clear axis labels, titles, etc.
+
+<!------------------------- Start your work below ----------------------------->
+
+**Primary Question:**
+
+Task: G3
+
+``` r
+# Plotting relationship duration by income class with a boxplot + dotplot
+
+hcmst_subset |>
+  drop_na() |> #dropping all NAs in subset before plotting
+  ggplot(aes(x = income, y = relationship_duration)) + 
+  geom_boxplot(fill = "cadetblue3", #adding boxplot with blue color
+               alpha = 0.3, #increasing transparency
+               outlier.shape = NA,) + #removing outlier plotting since all points are plotted in dotplot
+  geom_dotplot(binaxis='y', #binning along y axis instead of x
+               binwidth = 0.2, #setting 0.2 year binwidth to avoid excessive binning of data
+               stackdir = 'center',
+               dotsize = 7, #note: smaller binwidths result in smaller dot sizes, thus they must be proportionally adjusted
+               fill="cadetblue4",
+               alpha = 0.7) +
+  theme_bw() +
+  labs(
+    title = "Relationship duration by subject income level",
+    x = "Income level",
+    y = "Relationship duration (years)") +
+  theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) #rotating axis labels 45 degrees with correct alignment
+```
+
+![](mda_deliverable2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+#dotplot elements chosen with help from https://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+```
+
+Discussion: This plot shows that there is a very wide distribution of
+relationship durations within each income level. Mean relationship
+durations may be slightly shorter for lower income levels (~below 25k),
+however there are many fewer points in these levels, thus this may not
+be a significant difference. There appear to be a large number of very
+short relationships especially in the 60-75k bracket, and it would be
+interesting to further explore whether the proportion of these short
+relationships is higher in this bracket and what subjects report about
+these relationships (quality, age of subject, etc.).
+
+**Secondary Question:**
+
+Task: G5/G6
+
+``` r
+# plotting relationship duration of same-sex vs non same-sex couples by subject sex:
+
+hcmst_subset |>
+  drop_na() |>
+  mutate(
+    same_sex_couple = recode(same_sex_couple, 
+                             yes = "Same-sex", 
+                             no = "Non same-sex")) |> #recoding same-sex couple labels
+  ggplot(aes(relationship_duration, colour = sex)) +
+  geom_density(linewidth = 0.7) + #density plot of relationship durations
+  theme_light() +
+  scale_color_brewer(palette = "Dark2") + #color blind friendly palette in R Color Brewer
+  labs(
+    title = "Relationship duration of same-sex and non same-sex couples",
+    x = "Relationship duration (years)",
+    y = "Density of relationship duration",
+    colour = "Subject sex") +
+  facet_wrap(~same_sex_couple) #creating facets for same-sex and non-same sex relationships
+```
+
+![](mda_deliverable2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Discussion: There appears to be a much higher proportion of short (0-25
+year) same-sex relationships. This is true for both male and female
+same-sex relationships, however there is a higher proportion of male
+same-sex relationships that are 25-50 years long. There are almost no
+reported same-sex relationships longer than 50 years. Historical context
+should certainly be taken into account when drawing conclusions from
+this data. For non same-sex couples, males tend to report on longer
+relationships. Since the relationships are not same-sex, this indicates
+information about the subject reporting and not about the relationship.
+
+<!----------------------------------------------------------------------------->
+
+### 3.2: Fit a Model **(3 points)**
+
+Fit a model or run a hypothesis test that provides insight on this
+variable with respect to the research question. Store the model object
+as a variable, and print its output to screen. We’ll omit having to
+justify your choice, because we don’t expect you to know about model
+specifics in STAT 545.
+
+- **Note**: It’s OK if you don’t know how these models/tests work. Here
+  are some examples of things you can do here, but the sky’s the limit.
+
+  - You could fit a model that makes predictions on Y using another
+    variable, by using the `lm()` function.
+  - You could test whether the mean of Y equals 0 using `t.test()`, or
+    maybe the mean across two groups are different using `t.test()`, or
+    maybe the mean across multiple groups are different using `anova()`
+    (you may have to pivot your data for the latter two).
+  - You could use `lm()` to test for significance of regression
+    coefficients.
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+# using at t-test to compare mean relationship durations in same-sex and non same-sex relationships:
+
+# creating new dataframes with only same-sex couples or non same-sex couples and no NAs:
+same_sex <- hcmst_subset |> 
+  drop_na() |>
+  filter(same_sex_couple == "yes") #selecting only rows with same-sex couples
+
+non_same_sex <- hcmst_subset |>
+  drop_na() |>
+  filter(same_sex_couple == "no")
+
+# NOTE: this was easier than pivoting wider since my subset has an ordered factor (income)
+
+# Welch Two Sample t-test comparing relationship durations
+ttest_duration_samesex <- t.test(x = same_sex$relationship_duration, y = non_same_sex$relationship_duration)
+ttest_duration_samesex
+```
+
+    ## 
+    ##  Welch Two Sample t-test
+    ## 
+    ## data:  same_sex$relationship_duration and non_same_sex$relationship_duration
+    ## t = -7.3506, df = 116.22, p-value = 2.985e-11
+    ## alternative hypothesis: true difference in means is not equal to 0
+    ## 95 percent confidence interval:
+    ##  -13.349338  -7.682398
+    ## sample estimates:
+    ## mean of x mean of y 
+    ##  17.47070  27.98656
+
+<!----------------------------------------------------------------------------->
+
+### 3.3: Investigate Your Model (3 points)
+
+Produce something relevant from your fitted model: either predictions on
+Y, or a single value like a regression coefficient or a p-value.
+
+- Be sure to indicate in writing what you chose to produce.
+- Your code should either output a tibble (in which case you should
+  indicate the column that contains the thing you’re looking for), or
+  the thing you’re looking for itself.
+- Obtain your results using the `broom` package if possible. If your
+  model is not compatible with the broom function you’re needing, then
+  you can obtain your results by some other means, but first indicate
+  which broom function is not compatible.
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+# finding the p-value from the t-test:
+pval_duration_samesex <- tidy(ttest_duration_samesex)$p.value
+pval_duration_samesex
+```
+
+    ## [1] 2.984749e-11
+
+``` r
+# the p-value indicates that the mean relationship durations between same-sex and non same-sex couples are  
+# different with a confidence of 95%
+```
+
+<!----------------------------------------------------------------------------->
+
+# Task 4: Reading and writing data
+
+Get set up for this exercise by making a folder called `output` in the
+top level of your project folder / repository. You’ll be saving things
+there.
+
+### 4.1 Output Using `here()` (3 points)
+
+Take a summary table that you made from Task 2.1, and write it as a csv
+file in your `output` folder. Use the `here::here()` function.
+
+- **Robustness criteria**: You should be able to move your Mini Project
+  repository / project folder to some other location on your computer,
+  or move this very Rmd file to another location within your project
+  repository / folder, and your code should still work.
+- **Reproducibility criteria**: You should be able to delete the csv
+  file, and remake it simply by knitting this Rmd file.
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+# writing table to csv in "output" folder using here::here
+write.csv(relduration_byincome, here::here("output", "relduration_byincome.csv")) 
+```
+
+<!----------------------------------------------------------------------------->
+
+### 4.2 Input Using `here()` (3 points)
+
+Write your model object from Task 3.2 to an R binary file (an RDS), and
+load it again. Be sure to save the binary file in your `output` folder.
+Use the functions `saveRDS()` and `readRDS()`.
+
+- The same robustness and reproducibility criteria as in 4.1 apply here.
+
+<!-------------------------- Start your work below ---------------------------->
+
+``` r
+# writing RDS file of ttest in output folder:
+saveRDS(ttest_duration_samesex, here::here("output", "ttest_duration_samesex.rds"))
+
+# reading RDS file:
+readRDS(here::here("output", "ttest_duration_samesex.rds"))
+```
+
+    ## 
+    ##  Welch Two Sample t-test
+    ## 
+    ## data:  same_sex$relationship_duration and non_same_sex$relationship_duration
+    ## t = -7.3506, df = 116.22, p-value = 2.985e-11
+    ## alternative hypothesis: true difference in means is not equal to 0
+    ## 95 percent confidence interval:
+    ##  -13.349338  -7.682398
+    ## sample estimates:
+    ## mean of x mean of y 
+    ##  17.47070  27.98656
+
+<!----------------------------------------------------------------------------->
+
+# Task 5: Tidy Your Submission Overall
+
+Check over your document and GitHub repository for the following:
+
+### 5.1: Coherence **(2 points)**
+
+The document should read sensibly from top to bottom, with no major
+continuity errors. An example of a major continuity error is having a
+data set listed for Task 3 that is not part of one of the data sets
+listed in Task 1.
+
+### 5.2: Error-free code **(2 points)**
+
+For full marks, all code in the document should run without error and be
+completely reproducible.
+
+### 5.3 README **(6 points)**
+
+There should be a file named `README.md` at the top level of your
+repository. Its contents should automatically appear when you visit the
+repository on GitHub.
+
+Minimum contents of the README file:
+
+- In a sentence or two, explains what this repository is, so that
+  future-you or someone else stumbling on your repository can be
+  oriented to the repository.
+- List the files/folders contained in the repository
+- In a sentence or two, briefly explains how to engage with the
+  repository. You can assume the person reading knows the material from
+  STAT 545A. Basically, if a visitor to your repository wants to explore
+  your project, what should they know? How can they reproduce your
+  report?
+
+### 5.4 Generative AI Disclosure **(3 points)**
+
+In this course, Generative AI can be used in the following ways:
+
+- to clarify concepts discussed in class
+
+- as an “advanced search engine” (i.e., searching error codes)
+
+- debugging code that students wrote and attempted to debug on their own
+
+Generative AI **CANNOT** be used to generate text or code (including
+comments) from scratch.
+
+Any use of Generative AI must be disclosed.
+
+**To disclose your use, please copy and paste the following template
+into the README of your GitHub Repository and fill out the relevant
+details** \[in square brackets\]. BE SPECIFIC. Saying you used it to
+debug your code is not enough. Explicitly describe where you got stuck
+
+Here is an example of a specific, explicit debug:
+
+> “I had the error `attempt to apply non-function` after running my
+> code. I used Claude to help me identify that this error was due to me
+> attempting to multiply two numbers together without the use of a `*`,
+> i.e. `(2)(3)` instead of `2*3`.”
+
+``` markdown
+
+## Generative AI Statement 
+
+Generative AI (through [LIST MODELS USED, i.e. ChatGPT, CoPilot)] was used to 
+help me complete  this assignment in the following ways. 
+
+1. [Describe here]
+
+2. [Describe here]
+
+...
+
+I affirm that Generative AI was not used to generate text, code, or comments for 
+my assessments. 
+```
+
+If you did not use Generative AI, please include the following in your
+README:
+
+``` markdown
+
+## Generative AI Statement 
+
+Generative AI was not used in any way throughout this assignment.
+```
+
+Assessments suspected of having AI-generated text and/or code, or
+assignments where the Generative AI use was not disclosed, will be
+flagged and temporarily assigned a grade of zero. Students will be
+required to meet with the instructor to receive a grade.
+
+### 5.5 Output **(4 points)**
+
+All output on GitHub is readable, recent and relevant:
+
+- All `.Rmd` files have been `knit`ted to their output `.md` files.
+- All knitted `.md` files are viewable without errors on Github.
+  Examples of errors: Missing plots, “Sorry about that, but we can’t
+  show files that are this big right now” messages, error messages from
+  broken R code
+- All of these output files are up-to-date – that is, they haven’t
+  fallen behind after the source (`.Rmd`) files have been updated.
+- There should be no relic output files. For example, if you were
+  knitting an `.Rmd` to `.html`, but then changed the output to be only
+  a markdown file, then the `.html` file is a relic and should be
+  deleted.
+
+# Step 4: Submission
+
+### 4.1: Tag a Release **(1 point)**
+
+To submit this milestone, tag a release on GitHub and submit the link to
+Canvas.

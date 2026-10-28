@@ -22,6 +22,7 @@ library(diversedata)
 #--- Add any other packages below this line ---#
 library(RColorBrewer)
 library(broom)
+library(here)
 ```
 
 
@@ -55,8 +56,21 @@ Show the outputted table.
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
-# before proceeding, run mda-deliverable1.Rmd to load hcmst_subset
+# before proceeding, run mda-deliverable1.Rmd to load hcmst_subset, or run the following:
+hcmst_subset <- hcmst |>
+  select(c(subject_income_category, #selecting relevant columns for my analysis
+           relationship_duration, 
+           same_sex_couple,
+           subject_sex)) |> 
+  mutate(income = #ordering levels for my income category for easier graphing and renaming with shorter name
+           ordered(subject_income_category, 
+                   levels = c("under_5k", "5k-7k", "7k_10k", "10k_12k", "12k_15k", "15k_20k", "20k_25k","25k_30k", "30k_35k", "35k_40k", "40k_50k", "50k_60k", "60k_75k", "75k_85k","85k_100k", "100k_125k", "125k_150k", "150k_175k", "175k_200k", "200k_250k", "over_250k")),  
+         .keep = "unused", #getting rid of old subject_income_category column
+         .before = relationship_duration) |>
+  rename(sex = subject_sex) |>
+  arrange(income) 
 
+# creating a new tibble from hcmst_subset:
 relduration_byincome <- hcmst_subset |> #new tibble with mean relationship duration by income class
     group_by(income) |> #grouping by income class
     summarise(mean_rel_duration = mean(relationship_duration, na.rm = TRUE)) #creating new variable for mean relationship duration
@@ -177,7 +191,7 @@ hcmst_subset |>
 ```
 
 
-Discussion: This plot shows that there is a very wide distribution of relationship durations within each income level. Mean relationship durations may be slightly shorter for lower income levels (~below 25k), however there are many fewer points in these levels, thus this is unlikely to be significant. There appear to be a large number of very short relationships especially in the 60-75k bracket, and it would be interesting to further explore whether the proportion of these short relationships is higher in this bracket and what subjects report about these relationships.
+Discussion: This plot shows that there is a very wide distribution of relationship durations within each income level. Mean relationship durations may be slightly shorter for lower income levels (~below 25k), however there are many fewer points in these levels, thus this may not be a significant difference. There appear to be a large number of very short relationships especially in the 60-75k bracket, and it would be interesting to further explore whether the proportion of these short relationships is higher in this bracket and what subjects report about these relationships (quality, age of subject, etc.).
 
 **Secondary Question:**
 
@@ -186,14 +200,16 @@ Task: G5/G6
 
 ```{r}
 
-# Plotting relationship duration of same-sex vs non same-sex couples by subject sex
+# plotting relationship duration of same-sex vs non same-sex couples by subject sex:
 
 hcmst_subset |>
   drop_na() |>
   mutate(
-    same_sex_couple = recode(same_sex_couple, yes = "Same-sex", no = "Non same-sex")) |> #recoding same-sex couple labels
+    same_sex_couple = recode(same_sex_couple, 
+                             yes = "Same-sex", 
+                             no = "Non same-sex")) |> #recoding same-sex couple labels
   ggplot(aes(relationship_duration, colour = sex)) +
-  geom_density(linewidth = 0.7) + #denisty plot of relationship durations
+  geom_density(linewidth = 0.7) + #density plot of relationship durations
   theme_light() +
   scale_color_brewer(palette = "Dark2") + #color blind friendly palette in R Color Brewer
   labs(
@@ -223,21 +239,21 @@ Fit a model or run a hypothesis test that provides insight on this variable with
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
-same_sex <- hcmst_subset |>
+# using at t-test to compare mean relationship durations in same-sex and non same-sex relationships:
+
+# creating new dataframes with only same-sex couples or non same-sex couples and no NAs:
+same_sex <- hcmst_subset |> 
   drop_na() |>
-  filter(same_sex_couple == "yes") |>
-  select(relationship_duration) |>
-  as.vector()
-same_sex
+  filter(same_sex_couple == "yes") #selecting only rows with same-sex couples
 
 non_same_sex <- hcmst_subset |>
   drop_na() |>
-  filter(same_sex_couple == "no") |>
-  select(relationship_duration) |>
-  as.vector()
-head(non_same_sex)
+  filter(same_sex_couple == "no")
 
-ttest_duration_samesex <- t.test(x = same_sex, y = non_same_sex)
+# NOTE: this was easier than pivoting wider since my subset has an ordered factor (income)
+
+# Welch Two Sample t-test comparing relationship durations
+ttest_duration_samesex <- t.test(x = same_sex$relationship_duration, y = non_same_sex$relationship_duration)
 ttest_duration_samesex
 
 ```
@@ -253,6 +269,15 @@ Produce something relevant from your fitted model: either predictions on Y, or a
 -   Obtain your results using the `broom` package if possible. If your model is not compatible with the broom function you're needing, then you can obtain your results by some other means, but first indicate which broom function is not compatible.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+# finding the p-value from the t-test:
+pval_duration_samesex <- tidy(ttest_duration_samesex)$p.value
+pval_duration_samesex
+
+# the p-value indicates that the mean relationship durations between same-sex and non same-sex couples are  
+# different with a confidence of 95%
+
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -268,7 +293,11 @@ Take a summary table that you made from Task 2.1, and write it as a csv file in 
 -   **Reproducibility criteria**: You should be able to delete the csv file, and remake it simply by knitting this Rmd file.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+# writing table to csv in "output" folder using here::here
+write.csv(relduration_byincome, here::here("output", "relduration_byincome.csv")) 
 
+```
 <!----------------------------------------------------------------------------->
 
 ### 4.2 Input Using `here()` (3 points)
@@ -278,7 +307,14 @@ Write your model object from Task 3.2 to an R binary file (an RDS), and load it 
 -   The same robustness and reproducibility criteria as in 4.1 apply here.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+# writing RDS file of ttest in output folder:
+saveRDS(ttest_duration_samesex, here::here("output", "ttest_duration_samesex.rds"))
 
+# reading RDS file:
+readRDS(here::here("output", "ttest_duration_samesex.rds"))
+
+```
 <!----------------------------------------------------------------------------->
 
 
