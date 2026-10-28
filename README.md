@@ -1,5 +1,5 @@
 # README
-This is a repository for Eva's mini data analysis in STAT545, which analyzes the "hcmst" dataset on relationships during COVID contained in the "diverse data" package. The analysis focuses on relationship durations by income level and compares same-sex and non same-sex couples. The repository contains the following files:
+This is a repository for Eva's mini data analysis in STAT545, which analyzes the "hcmst" dataset on relationships during COVID contained in the "diverse data" package. The analysis focuses on relationship durations by income level and compares same-sex and non same-sex couples.
 
 ## Files
 README.md - this README file
@@ -18,8 +18,8 @@ output - folder containing CSV and RMS files generated in mda_deliverable2
 
 .gitignore - specifies which files to ignore
 
-
-To run the analysis in this repository, first open and run mda_deliverable1 to produce the tidied dataset subset used in mda_deliverable2. mda_deliverable1 explores the datset, while mda_deliverable2 contains more in-depth analysis including two plots and a t-test and can be built on to include further analysis.
+## Using this repository
+To run the analysis in this repository, first open and run mda_deliverable1 to produce the tidied dataset subset used in mda_deliverable2, or run the hcmst_subset code included for convenience in mda_deliverable2. mda_deliverable1 explores the datset, while mda_deliverable2 contains more in-depth analysis including two plots and a t-test and can be built on to include further analysis.
 
 ## Generative AI Statement 
 
